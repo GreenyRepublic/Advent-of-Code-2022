@@ -7,33 +7,47 @@ import Data.List
 -- Part 1: Find the total score for the given strategy guide
 -- Part 2: Find total score with revised strategy guide
 
+data Outcome = Win | Lose | Draw
+data PlayChoice = Rock | Paper | Scissors
+
+charToPlayChoice :: String -> PlayChoice
+charToPlayChoice input
+    | input == "A" || input == "X" = Rock
+    | input == "B" || input == "Y" = Paper
+    | otherwise = Scissors
+
+outcomeToScore :: Outcome -> Int
+outcomeToScore Win = 6
+outcomeToScore Lose = 0
+outcomeToScore Draw = 3
+
+choiceToScore :: PlayChoice -> Int
+choiceToScore Rock = 1
+choiceToScore Paper = 2
+choiceToScore Scissors = 3
+
 parseInput :: [String] -> [[String]]
 parseInput input = map (splitOn " ") input
 
-choiceValue :: String -> Int
-choiceValue "X" = 1
-choiceValue "Y" = 2
-choiceValue "Z" = 3
+--
 
-getWinner :: String -> String
-getWinner "A" = "Y"
-getWinner "B" = "Z"
-getWinner "C" = "X"
+getWinner :: PlayChoice -> PlayChoice
+getWinner Rock = Paper
+getWinner Paper = Scissors 
+getWinner Scissors = Rock
 
-getDrawer :: String -> String
-getDrawer "A" = "X"
-getDrawer "B" = "Y"
-getDrawer "C" = "Z"
+getDrawer :: PlayChoice -> PlayChoice
+getDrawer choice = choice
 
-getLoser :: String -> String
-getLoser "A" = "Z"
-getLoser "B" = "X"
-getLoser "C" = "Y"
+getLoser :: PlayChoice -> PlayChoice
+getLoser Rock = Scissors
+getLoser Paper = Rock
+getLoser Scissors = Rock
 
 playForOutcome :: String -> String -> Int
-playForOutcome opponent "X" = 0 + (choiceValue (getLoser opponent))
-playForOutcome opponent "Y" = 3 + (choiceValue (getDrawer opponent))
-playForOutcome opponent "Z" = 6 + (choiceValue (getWinner opponent))
+playForOutcome opponent Rock = 0 + (choiceToScore (getLoser opponent))
+playForOutcome opponent Paper = 3 + (choiceToScore (getDrawer opponent))
+playForOutcome opponent Scissors = 6 + (choiceToScore (getWinner opponent))
 playForOutcome a b = 0
 
 --
@@ -59,7 +73,7 @@ winLossValue "B" = playPaper
 winLossValue "C" = playScissors
 
 playGame :: [String] -> Int
-playGame input = (winLossValue (left)) (right) + (choiceValue right)
+playGame input = (winLossValue (left)) (right) + (choiceToScore right)
     where   left = head input
             right = last input
 
