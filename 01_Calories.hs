@@ -8,7 +8,7 @@ import Data.List
 -- Part 2: Find the total calories carried by the top three elves
 
 parseIntLists :: [String] -> [[Int]]
-parseIntLists values = map (map (read::String->Int)) (splitOn [""] values)
+parseIntLists values = map (map (read::String->  Int)) (splitOn [""] values)
 
 partTwo :: [String] -> Int
 partTwo values = sum (take 3 (reverse (sort (map (sum) (parseIntLists values)))))
