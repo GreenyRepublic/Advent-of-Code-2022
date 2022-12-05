@@ -16,15 +16,21 @@ charToPlayChoice input
     | input == "B" || input == "Y" = Paper
     | otherwise = Scissors
 
-outcomeToScore :: Outcome -> Int
-outcomeToScore Win = 6
-outcomeToScore Lose = 0
-outcomeToScore Draw = 3
+charToOutcome :: String -> Outcome
+charToOutcome "X" = Lose
+charToOutcome "Y" = Draw
+charToOutcome "Z" = Win
+charToOutcome letter = Draw
 
-choiceToScore :: PlayChoice -> Int
-choiceToScore Rock = 1
-choiceToScore Paper = 2
-choiceToScore Scissors = 3
+outcomeScore :: Outcome -> Int
+outcomeScore Win = 6
+outcomeScore Lose = 0
+outcomeScore Draw = 3
+
+choiceScore :: PlayChoice -> Int
+choiceScore Rock = 1
+choiceScore Paper = 2
+choiceScore Scissors = 3
 
 parseInput :: [String] -> [[String]]
 parseInput input = map (splitOn " ") input
@@ -44,51 +50,56 @@ getLoser Rock = Scissors
 getLoser Paper = Rock
 getLoser Scissors = Rock
 
-playForOutcome :: String -> String -> Int
-playForOutcome opponent Rock = 0 + (choiceToScore (getLoser opponent))
-playForOutcome opponent Paper = 3 + (choiceToScore (getDrawer opponent))
-playForOutcome opponent Scissors = 6 + (choiceToScore (getWinner opponent))
-playForOutcome a b = 0
+playForOutcome :: PlayChoice -> Outcome -> Int
+playForOutcome opponent Lose = (outcomeScore Lose) + choiceScore (getLoser opponent)
+playForOutcome opponent Draw = (outcomeScore Draw) + choiceScore (getDrawer opponent)
+playForOutcome opponent Win = (outcomeScore Win) + choiceScore (getWinner opponent)
 
 --
 
-playRock :: String -> Int
-playRock "X" = 3
-playRock "Y" = 6
-playRock "Z" = 0
+playRock :: PlayChoice -> Outcome
+playRock Paper = Win
+playRock Scissors = Lose
+playRock Rock = Draw
 
-playPaper :: String -> Int
-playPaper "X" = 0
-playPaper "Y" = 3
-playPaper "Z" = 6
+playPaper :: PlayChoice -> Outcome
+playPaper Scissors = Win
+playPaper Rock = Lose
+playPaper Paper = Draw
 
-playScissors :: String -> Int
-playScissors "X" = 6
-playScissors "Y" = 0
-playScissors "Z" = 3
+playScissors :: PlayChoice -> Outcome
+playScissors Rock = Win
+playScissors Paper = Lose
+playScissors Scissors = Draw
 
-winLossValue :: String -> (String -> Int)
-winLossValue "A" = playRock
-winLossValue "B" = playPaper
-winLossValue "C" = playScissors
+chooseOption :: PlayChoice -> (PlayChoice -> Outcome)
+chooseOption Rock = playRock
+chooseOption Paper = playPaper
+chooseOption Scissors = playScissors
 
-playGame :: [String] -> Int
-playGame input = (winLossValue (left)) (right) + (choiceToScore right)
+playForOption :: PlayChoice -> PlayChoice -> Int
+playForOption left right = outcomeScore ((chooseOption left) right) + (choiceScore right)
+
+--
+
+playGame :: [PlayChoice] -> Int
+playGame input = playForOption left right
     where   left = head input
             right = last input
 
 playGameRevised :: [String] -> Int
-playGameRevised input = (playForOutcome left right)
-    where   left = head input
-            right = last input
-
-partTwo :: [String] -> Int
-partTwo values = sum (map (playGameRevised) parsedValues)
-    where parsedValues = parseInput values
+playGameRevised input = playForOutcome left right
+    where   left = charToPlayChoice (head input)
+            right = charToOutcome (last input)
 
 partOne :: [String] -> Int
-partOne values = sum (map (playGame) parsedValues)
-    where parsedValues = parseInput values
+partOne values = sum (map playGame mappedValues)
+    where   mappedValues = map (map charToPlayChoice) parsedValues
+            parsedValues = parseInput values
+
+partTwo :: [String] -> Int
+partTwo values = sum (map playGameRevised parsedValues)
+    where   parsedValues = parseInput values
 
 main :: IO ()
 main = do
