@@ -23,7 +23,7 @@ halfList items = (take half items, drop half items)
 findDuplicateChar :: [String] -> Char
 findDuplicateChar ([]:items) = '_'
 findDuplicateChar (a:items)
-    | (foldr (&&) True (map (elem (head a)) items)) = head a
+    | (all (elem (head a)) items) = head a
     | otherwise = findDuplicateChar ((tail a):items)
 
 
