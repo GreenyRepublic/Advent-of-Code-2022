@@ -7,10 +7,11 @@ import Data.List
 -- Part 1: Find the total score for the given strategy guide
 -- Part 2: Find total score with revised strategy guide
 
-data Outcome = Win | Lose | Draw
-data PlayChoice = Rock | Paper | Scissors
+data Outcome = Win | Lose | Draw deriving (Eq, Show)
+data PlayChoice = Rock | Paper | Scissors deriving (Eq, Show)
 
 rpsCycle = [Rock, Paper, Scissors]
+wldCycle = [Draw, Win, Lose]
 
 rotateLeft :: [a] -> Int -> [a]
 rotateLeft vals 0 = vals
@@ -42,6 +43,9 @@ choiceScore Rock = 1
 choiceScore Paper = 2
 choiceScore Scissors = 3
 
+choiceIndex :: PlayChoice -> Int
+choiceIndex choice = (choiceScore choice) - 1
+
 parseInput :: [String] -> [[String]]
 parseInput input = map (splitOn " ") input
 
@@ -56,18 +60,18 @@ parseInputToChoices (v:values) = (charToPlayChoice (head v), charToPlayChoice (l
 --
 
 getWinner :: PlayChoice -> PlayChoice
-getWinner choice = getWinner' rpsCycle choice
+getWinner opt = getWinner' rpsCycle opt
     where
         getWinner' (v:values) choice
             | v == choice = head values
-            | otherwise = getWinner' (rotateLeft (v:values)) choice
+            | otherwise = getWinner' (rotateLeft (v:values) 1) choice
 
 getLoser :: PlayChoice -> PlayChoice
-getLoser choice = getLoser' rpsCycle choice
+getLoser opt = getLoser' rpsCycle opt
     where
         getLoser' (v:values) choice
             | v == choice = last values
-            | otherwise = getLoser' (rotateLeft (v:values)) choicea
+            | otherwise = getLoser' (rotateLeft (v:values) 1) choice
 
 playForOutcome :: PlayChoice -> Outcome -> Int
 playForOutcome opponent Lose = (outcomeScore Lose) + choiceScore (getLoser opponent)
@@ -76,28 +80,12 @@ playForOutcome opponent Win = (outcomeScore Win) + choiceScore (getWinner oppone
 
 --
 
-playRock :: PlayChoice -> Outcome
-playRock Paper = Win
-playRock Scissors = Lose
-playRock Rock = Draw
-
-playPaper :: PlayChoice -> Outcome
-playPaper Scissors = Win
-playPaper Rock = Lose
-playPaper Paper = Draw
-
-playScissors :: PlayChoice -> Outcome
-playScissors Rock = Win
-playScissors Paper = Lose
-playScissors Scissors = Draw
-
-chooseOption :: PlayChoice -> (PlayChoice -> Outcome)
-chooseOption Rock = playRock
-chooseOption Paper = playPaper
-chooseOption Scissors = playScissors
+playRPS :: PlayChoice -> PlayChoice -> Outcome
+playRPS left right = head (rotateLeft wldCycle indexDiff)
+    where   indexDiff = mod (3 + ((choiceIndex right) - (choiceIndex left))) 3
 
 playForOption :: PlayChoice -> PlayChoice -> Int
-playForOption left right = outcomeScore ((chooseOption left) right) + (choiceScore right)
+playForOption left right = outcomeScore (playRPS left right) + (choiceScore right)
 
 --
 
