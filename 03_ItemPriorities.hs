@@ -20,20 +20,24 @@ halfList :: [a] -> ([a], [a])
 halfList items = (take half items, drop half items)
     where half = div (length items) 2
 
-findDuplicateChar :: String -> String -> Char
-findDuplicateChar [] right = '_'
-findDuplicateChar left right
-    | elem (head left) (right) = head left
-    | otherwise = findDuplicateChar (tail left) right
+findDuplicateChar :: [String] -> Char
+findDuplicateChar ([]:items) = '_'
+findDuplicateChar (a:items)
+    | (foldr (&&) True (map (elem (head a)) items)) = head a
+    | otherwise = findDuplicateChar ((tail a):items)
 
 
 partOne :: [String] -> Int
-partOne values = sum (map charPriority (map (uncurry findDuplicateChar) halvedList))
+partOne values = sum (map charPriority (map findDuplicateChar halvedList))
     where
-        halvedList = map halfList values
+        halvedList = map toList (map halfList values)
+        toList (left, right) = [left, right]
 
 partTwo :: [String] -> Int
-partTwo values = 0
+partTwo [] = 0
+partTwo (a:[]) = 0
+partTwo (a:b:[]) = 0
+partTwo (a:b:c:values) = charPriority (findDuplicateChar [a,b,c]) + (partTwo values)
 
 main :: IO ()
 main = do
