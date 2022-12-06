@@ -10,17 +10,27 @@ import Data.List
 data Outcome = Win | Lose | Draw
 data PlayChoice = Rock | Paper | Scissors
 
-charToPlayChoice :: String -> PlayChoice
+rpsCycle = [Rock, Paper, Scissors]
+
+rotateLeft :: [a] -> Int -> [a]
+rotateLeft vals 0 = vals
+rotateLeft (v:vals) n = rotateLeft (vals ++ [v]) (n - 1)
+
+rotateRight :: [a] -> Int -> [a]
+rotateRight vals 0 = vals
+rotateRight vals n = rotateRight ((last vals):vals) (n - 1)
+
+charToPlayChoice :: Char -> PlayChoice
 charToPlayChoice input
-    | input == "A" || input == "X" = Rock
-    | input == "B" || input == "Y" = Paper
+    | input == 'A' || input == 'X' = Rock
+    | input == 'B' || input == 'Y' = Paper
     | otherwise = Scissors
 
-charToOutcome :: String -> Outcome
-charToOutcome "X" = Lose
-charToOutcome "Y" = Draw
-charToOutcome "Z" = Win
-charToOutcome letter = Draw
+charToOutcome :: Char -> Outcome
+charToOutcome input
+    | input == 'X' = Lose
+    | input == 'Y' = Draw
+    | input == 'Z' = Win
 
 outcomeScore :: Outcome -> Int
 outcomeScore Win = 6
@@ -35,24 +45,33 @@ choiceScore Scissors = 3
 parseInput :: [String] -> [[String]]
 parseInput input = map (splitOn " ") input
 
+parseInputToChoiceOutcome :: [String] -> [(PlayChoice, Outcome)]
+parseInputToChoiceOutcome [] = []
+parseInputToChoiceOutcome (v:values) = (charToPlayChoice (head v), charToOutcome (last v)) : parseInputToChoiceOutcome values
+
+parseInputToChoices :: [String] -> [(PlayChoice, PlayChoice)]
+parseInputToChoices [] = []
+parseInputToChoices (v:values) = (charToPlayChoice (head v), charToPlayChoice (last v)) : parseInputToChoices values
+
 --
 
 getWinner :: PlayChoice -> PlayChoice
-getWinner Rock = Paper
-getWinner Paper = Scissors 
-getWinner Scissors = Rock
-
-getDrawer :: PlayChoice -> PlayChoice
-getDrawer choice = choice
+getWinner choice = getWinner' rpsCycle choice
+    where
+        getWinner' (v:values) choice
+            | v == choice = head values
+            | otherwise = getWinner' (rotateLeft (v:values)) choice
 
 getLoser :: PlayChoice -> PlayChoice
-getLoser Rock = Scissors
-getLoser Paper = Rock
-getLoser Scissors = Rock
+getLoser choice = getLoser' rpsCycle choice
+    where
+        getLoser' (v:values) choice
+            | v == choice = last values
+            | otherwise = getLoser' (rotateLeft (v:values)) choicea
 
 playForOutcome :: PlayChoice -> Outcome -> Int
 playForOutcome opponent Lose = (outcomeScore Lose) + choiceScore (getLoser opponent)
-playForOutcome opponent Draw = (outcomeScore Draw) + choiceScore (getDrawer opponent)
+playForOutcome opponent Draw = (outcomeScore Draw) + choiceScore opponent
 playForOutcome opponent Win = (outcomeScore Win) + choiceScore (getWinner opponent)
 
 --
@@ -82,24 +101,23 @@ playForOption left right = outcomeScore ((chooseOption left) right) + (choiceSco
 
 --
 
-playGame :: [PlayChoice] -> Int
+playGame :: (PlayChoice,PlayChoice) -> Int
 playGame input = playForOption left right
-    where   left = head input
-            right = last input
+    where   left = fst input
+            right = snd input
 
-playGameRevised :: [String] -> Int
+playGameRevised :: (PlayChoice, Outcome) -> Int
 playGameRevised input = playForOutcome left right
-    where   left = charToPlayChoice (head input)
-            right = charToOutcome (last input)
+    where   left = fst input
+            right = snd input
 
 partOne :: [String] -> Int
-partOne values = sum (map playGame mappedValues)
-    where   mappedValues = map (map charToPlayChoice) parsedValues
-            parsedValues = parseInput values
+partOne values = sum (map playGame parsedValues)
+    where   parsedValues = parseInputToChoices values
 
 partTwo :: [String] -> Int
 partTwo values = sum (map playGameRevised parsedValues)
-    where   parsedValues = parseInput values
+    where   parsedValues = parseInputToChoiceOutcome values
 
 main :: IO ()
 main = do
