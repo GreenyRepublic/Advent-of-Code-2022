@@ -5,7 +5,7 @@ import Data.List
 
 -- Day 4: Camp Cleanup
 -- Part 1: Find interval pairs where one is contained within another
--- Part 2: 
+-- Part 2: Find interval pairs where they overlap
 
 data Interval = Interval { start :: Int, end :: Int } deriving (Eq, Show)
 
@@ -23,7 +23,7 @@ parseInput :: [String] -> [(Interval, Interval)]
 parseInput input = map parseIntervalPair input
 
 doIntervalsEnclose :: Interval -> Interval -> Bool
-doIntervalsEnclose a b = ((start a >= start b) && (end a <= end b)) || ((start b >= start a) && (end b <= end a))
+doIntervalsEnclose (Interval sa ea) (Interval sb eb)  = ((sa >= sb) && (ea <= eb)) || ((sb >= sa) && (eb <= ea))
 
 doIntervalsOverlap :: Interval -> Interval -> Bool
 doIntervalsOverlap a b = not ((start a < start b && end a < start b) || (start a > end b && end a > end b))
