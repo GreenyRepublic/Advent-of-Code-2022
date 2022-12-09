@@ -39,7 +39,7 @@ parseInput input = (parseCrateStacks (init (head splitInput)), parseInstructionL
 runSingleInstruction :: [String] -> Instruction -> [String]
 runSingleInstruction stack (Instruction from to count)
     | from <= to = runSingleInstruction' stack (Instruction (from - 1) (to - 1) count) []
-    | otherwise = reverse(runSingleInstruction' (reverse stack) (Instruction (from - 1) (to - 1) count) []) 
+    | otherwise = reverse(runSingleInstruction' (reverse stack) (Instruction ((length stack) - from) ((length stack) - to) count) []) 
     where
         runSingleInstruction' :: [String] -> Instruction -> String -> [String] 
         runSingleInstruction' [] instruction pick = []
