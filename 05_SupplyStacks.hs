@@ -36,26 +36,37 @@ parseInput :: [String] -> ([String], [Instruction])
 parseInput input = (parseCrateStacks (init (head splitInput)), parseInstructionList(last splitInput))
     where splitInput = splitOn [""] input
 
-runSingleInstruction :: [String] -> Instruction -> [String]
-runSingleInstruction stack (Instruction from to count)
-    | from <= to = runSingleInstruction' stack (Instruction (from - 1) (to - 1) count) []
-    | otherwise = reverse(runSingleInstruction' (reverse stack) (Instruction ((length stack) - from) ((length stack) - to) count) []) 
+runSingleInstruction :: [String] -> Instruction -> Bool -> [String]
+runSingleInstruction stack (Instruction from to count) inOrder
+    | from <= to = runSingleInstruction' stack (Instruction (from - 1) (to - 1) count) [] inOrder
+    | otherwise = reverse(runSingleInstruction' (reverse stack) (Instruction ((length stack) - from) ((length stack) - to) count) [] inOrder)  
     where
-        runSingleInstruction' :: [String] -> Instruction -> String -> [String] 
-        runSingleInstruction' [] instruction pick = []
-        runSingleInstruction' (s:stack) (Instruction 0 0 count) pick = ((reverse pick) ++ s) : stack
-        runSingleInstruction' (s:stack) (Instruction 0 to count) pick = (drop count s) : (runSingleInstruction' stack (Instruction 0 (to - 1) count) (take count s))
-        runSingleInstruction' (s:stack) (Instruction from to count) pick = s : (runSingleInstruction' stack (Instruction (from - 1) (to - 1) count) pick)
+        runSingleInstruction' :: [String] -> Instruction -> String -> Bool -> [String] 
+        runSingleInstruction' [] instruction pick _ = []
+        runSingleInstruction' (s:stack) (Instruction _ 0 _) pick False = ((reverse pick) ++ s) : stack
+        runSingleInstruction' (s:stack) (Instruction _ 0 _) pick True = (pick ++ s) : stack
+        runSingleInstruction' (s:stack) (Instruction 0 to count) pick inOrder = (drop count s) : (runSingleInstruction' stack (Instruction ( -1) (to - 1) count) (take count s) inOrder)
+        runSingleInstruction' (s:stack) (Instruction from to count) pick inOrder = s : (runSingleInstruction' stack (Instruction (from - 1) (to - 1) count) pick inOrder)
 
-runAllInstructions :: [String] -> [Instruction] -> [String]
-runAllInstructions stacks inst = (runAllInstructions (runSingleInstruction stacks (head inst)) (tail inst))
+runAllInstructions :: [String] -> [Instruction] -> Bool -> [String]
+runAllInstructions stacks [] _ = stacks
+runAllInstructions stacks (i:inst) inOrder = (runAllInstructions (runSingleInstruction stacks i inOrder) inst inOrder)
 
 partOne :: [String] -> String
-partOne lines = map head (runAllInstructions (fst parsedLines) (snd parsedLines))
-    where parsedLines = parseInput lines
+partOne lines = firstString (runAllInstructions (fst parsedLines) (snd parsedLines) False)
+    where   parsedLines = parseInput lines
+            firstString [] = ""
+            firstString (v:vals) 
+                | v == "" = [] ++ firstString vals
+                | otherwise = (head v) : firstString vals
 
-partTwo :: [String] -> Int
-partTwo values = 0
+partTwo :: [String] -> String
+partTwo lines = firstString (runAllInstructions (fst parsedLines) (snd parsedLines) True)
+    where   parsedLines = parseInput lines
+            firstString [] = ""
+            firstString (v:vals) 
+                | v == "" = [] ++ firstString vals
+                | otherwise = (head v) : firstString vals
 
 main :: IO ()
 main = do
