@@ -5,28 +5,28 @@ import Data.List
 import Data.HashSet as HashSet
 
 -- Day 6: Tuning Trouble
--- Part 1: Find the character at the end of the first 4 consecutive unique characters
--- Part 2: 
+-- Part 1: Find the character pos at the end of the first 4 consecutive unique characters
+-- Part 2: Find the character pos at the end of the first 14 consecutive unique characters
 
 areCharsUnique :: String -> Bool
 areCharsUnique str = areCharsUnique' str HashSet.empty
     where
-        areCharsUnique' :: String -> HashSet -> Bool
+        areCharsUnique' :: String -> HashSet Char -> Bool
         areCharsUnique' [] _ = True
         areCharsUnique' (s:str) set = not (HashSet.member s set) && (areCharsUnique' str (HashSet.insert s set))
 
-sequenceMarkerChar :: String -> Int
-sequenceMarkerChar input = sequenceMarkerChar' input 4
+sequenceMarkerChar :: String -> Int -> Int
+sequenceMarkerChar input count = sequenceMarkerChar' input count
     where
         sequenceMarkerChar' str index
-        | areCharsUnique (take 4 str) = index
-        | otherwise = sequenceMarkerChar' (drop 1 str) (index  + 1)
+            |   areCharsUnique (take count str) = index
+            |   otherwise = sequenceMarkerChar' (drop 1 str) (index  + 1)
 
 partOne :: [String] -> Int
-partOne lines = sequenceMarkerIndex (head lines)
+partOne lines = sequenceMarkerChar (head lines) 4
 
-partTwo :: [String] -> String
-partTwo lines = ""
+partTwo :: [String] -> Int
+partTwo lines = sequenceMarkerChar (head lines) 14
 
 main :: IO ()
 main = do
